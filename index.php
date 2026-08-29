@@ -41,6 +41,9 @@ function tempest_highlight_main( string $content ):string {
 	//	`<pre><code class="language-*">`
 	$codeSnippets = $dom->querySelectorAll( "pre>code[class^=language-]" );
 
+	//	Unique ID
+	$id = 0;
+
 	//	Iterate through each snippet.
 	foreach ( $codeSnippets as $code ) {
 
@@ -71,11 +74,21 @@ function tempest_highlight_main( string $content ):string {
 		$code->innerHTML = $highlighter->parse( $originalCode, $language );
 
 		//	Add the copy button.
-		$copy_button = "<button class='copy' title='Copy code' onclick='navigator.clipboard.writeText( this.parentNode.getElementsByTagName(\"code\")[0].textContent );'>⧉</button>";
+		//	Timeout the popover after 3 seconds.
+		$copy_button = "<button class='copy' title='Copy code' popovertarget='pop{$id}' popovertargetaction='show' onclick='navigator.clipboard.writeText( this.parentNode.getElementsByTagName(\"code\")[0].textContent );  setTimeout(function() { document.getElementById(\"pop{$id}\").hidePopover(); }, 3000); '>⧉</button>";
 		//	Create a new DOM for it.
 		$copy_dom = Dom\HTMLDocument::createFromString( $copy_button, LIBXML_NOERROR | LIBXML_HTML_NOIMPLIED, "UTF-8" );
 		//	Import the specific element and its attributes.
 		$element = $dom->importNode( $copy_dom->firstChild, true );
+		//	Insert it before the <code> element.
+		$code->parentNode->insertBefore( $element, $code );
+
+		//	Add the popover
+		$popover = "<dialog id='pop{$id}' popover='hint'>Copied {$language_display} to 📋</dialog>";
+		//	Create a new DOM for it.
+		$pop_dom = Dom\HTMLDocument::createFromString( $popover, LIBXML_NOERROR | LIBXML_HTML_NOIMPLIED, "UTF-8" );
+		//	Import the specific element and its attributes.
+		$element = $dom->importNode( $pop_dom->firstChild, true );
 		//	Insert it before the <code> element.
 		$code->parentNode->insertBefore( $element, $code );
 
@@ -92,6 +105,8 @@ function tempest_highlight_main( string $content ):string {
 			//	Insert it before the <code> element.
 			$code->parentNode->insertBefore( $element, $code );
 		}
+
+		$id++;
 	}
 
 	//	Add the base CSS to the page.
