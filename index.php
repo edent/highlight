@@ -75,7 +75,7 @@ function tempest_highlight_main( string $content ):string {
 
 		//	Add the copy button.
 		//	Timeout the popover after 3 seconds.
-		$copy_button = "<button class='copy' title='Copy code' popovertarget='pop{$id}' popovertargetaction='show' onclick=\"navigator.clipboard.writeText( this.parentNode.getElementsByTagName('code')[0].textContent ); setTimeout(function() { document.getElementById('pop{$id}').hidePopover(); }, 3000);\">⧉</button>";
+		$copy_button = "<button class='copy' title='Copy code' popovertarget='pop{$id}' popovertargetaction='show' onclick=\"navigator.clipboard.writeText( this.parentNode.getElementsByTagName('code')[0].textContent ); document.getElementById('pop{$id}').togglePopover({source: this});\"><span aria-hidden=true>⧉</span></button>";
 		//	Create a new DOM for it.
 		$copy_dom = Dom\HTMLDocument::createFromString( $copy_button, LIBXML_NOERROR | LIBXML_HTML_NOIMPLIED, "UTF-8" );
 		//	Import the specific element and its attributes.
@@ -84,7 +84,7 @@ function tempest_highlight_main( string $content ):string {
 		$code->parentNode->insertBefore( $element, $code );
 
 		//	Add the popover *outside* the <pre> for HTML validation.
-		$popover = "<dialog id='pop{$id}' popover='hint'>Copied {$language_display} to 📋</dialog>";
+		$popover = "<dialog id='pop{$id}' popover>Copied {$language_display} to 📋</dialog>";
 		//	Use insertAdjacentHTML for strings
 		$code->parentNode->insertAdjacentHTML( Dom\AdjacentPosition::BeforeBegin, $popover );
 
