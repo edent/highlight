@@ -35,7 +35,7 @@ function tempest_highlight_main( string $content ):string {
 	//	Create the highlighter.
 	$highlighter = new Tempest\Highlight\Highlighter( $highlightTheme );
 	//	Load the content into PHP 8.4's HTML DOM.
-	$dom = Dom\HTMLDocument::createFromString( $content, LIBXML_NOERROR | LIBXML_HTML_NOIMPLIED, "UTF-8" );
+	$dom = Dom\HTMLDocument::createFromString( $content, LIBXML_NOERROR, "UTF-8" );
 	
 	//	Select the code snippets.
 	//	`<pre><code class="language-*">`
@@ -51,7 +51,7 @@ function tempest_highlight_main( string $content ):string {
 		$originalClass = $code->className;
 		
 		//	Transform `language-whatever` into `whatever`.
-		$language = explode("-", $originalClass)[1];
+		$language = explode( "-", $originalClass )[1];
 
 		//	Language names and icons may be displayed differently.
 		[$language, $language_logo, $language_display] = getLanguageProperties( $language );
@@ -75,7 +75,7 @@ function tempest_highlight_main( string $content ):string {
 
 		//	Add the copy button.
 		//	Timeout the popover after 3 seconds.
-		$copy_button = "<button class='copy' title='Copy code' popovertarget='pop{$id}' popovertargetaction='show' onclick='navigator.clipboard.writeText( this.parentNode.getElementsByTagName(\"code\")[0].textContent );  setTimeout(function() { document.getElementById(\"pop{$id}\").hidePopover(); }, 3000); '>⧉</button>";
+		$copy_button = "<button class='copy' title='Copy code' popovertarget='pop{$id}' popovertargetaction='show' onclick=\"navigator.clipboard.writeText( this.parentNode.getElementsByTagName('code')[0].textContent ); setTimeout(function() { document.getElementById('pop{$id}').hidePopover(); }, 3000);\">⧉</button>";
 		//	Create a new DOM for it.
 		$copy_dom = Dom\HTMLDocument::createFromString( $copy_button, LIBXML_NOERROR | LIBXML_HTML_NOIMPLIED, "UTF-8" );
 		//	Import the specific element and its attributes.
@@ -83,14 +83,10 @@ function tempest_highlight_main( string $content ):string {
 		//	Insert it before the <code> element.
 		$code->parentNode->insertBefore( $element, $code );
 
-		//	Add the popover
+		//	Add the popover *outside* the <pre> for HTML validation.
 		$popover = "<dialog id='pop{$id}' popover='hint'>Copied {$language_display} to 📋</dialog>";
-		//	Create a new DOM for it.
-		$pop_dom = Dom\HTMLDocument::createFromString( $popover, LIBXML_NOERROR | LIBXML_HTML_NOIMPLIED, "UTF-8" );
-		//	Import the specific element and its attributes.
-		$element = $dom->importNode( $pop_dom->firstChild, true );
-		//	Insert it before the <code> element.
-		$code->parentNode->insertBefore( $element, $code );
+		//	Use insertAdjacentHTML for strings
+		$code->parentNode->insertAdjacentHTML( Dom\AdjacentPosition::BeforeBegin, $popover );
 
 		//	Add the language header before the code.
 		//	Construct the HTML.
@@ -112,8 +108,8 @@ function tempest_highlight_main( string $content ):string {
 	//	Add the base CSS to the page.
 	enqueueBaseCSS();
 
-	//	Return the altered HTML
-	return $dom->saveHTML();
+	//	Return the altered HTML.
+	return $dom->body->innerHTML;
 }
 
 /** @return array<string> */
